@@ -20,11 +20,60 @@ import { createThirdwebClient, getContract } from "thirdweb";
 import { defineChain } from "thirdweb/chains";
 import { ConnectButton, darkTheme, useActiveAccount } from "thirdweb/react";
 import Sidebar from "@/components/sidebar"
+import vault from "@/app/Abi/MochaTreeRightsABI.json"
 import { useAccount, useReadContract, useReadContracts, useWriteContract, usePublicClient } from "wagmi"
 
 
 const MOCHA_TREE_CONTRACT_ADDRESS = "0x4b02Bada976702E83Cf91Cd0B896852099099352" as const;
 const MBT_TOKEN_ADDRESS = "0xb75083585DcB841b8B04ffAC89c78a16f2a5598B" as const;
+const MOCHA_TREE_CONTRACT_ABI = vault.abi;
+
+const MBT_TOKEN_ABI = [
+  {
+    constant: true,
+    inputs: [{ name: "_owner", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ name: "balance", type: "uint256" }],
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: "_spender", type: "address" },
+      { name: "_value", type: "uint256" },
+    ],
+    name: "approve",
+    outputs: [{ name: "success", type: "bool" }],
+    type: "function",
+  },
+  {
+    constant: false,
+    inputs: [
+      { name: "_to", type: "address" },
+      { name: "_value", type: "uint256" },
+    ],
+    name: "transfer",
+    outputs: [{ name: "success", type: "bool" }],
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "decimals",
+    outputs: [{ name: "", type: "uint8" }],
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [
+      { name: "_owner", type: "address" },
+      { name: "_spender", type: "address" }
+    ],
+    name: "allowance",
+    outputs: [{ name: "remaining", type: "uint256" }],
+    type: "function",
+  },
+] as const;
 
 const client = createThirdwebClient({
   clientId: "e3f84c8714d65ddfb2c6b154bd40f4c3",
@@ -119,6 +168,23 @@ export default function MarketplacePage() {
     ],
     testnet: true,
   });
+
+  const { data: activeFarmIds, isLoading: isLoadingActiveFarmIds, error: activeFarmIdsError } = useReadContract({
+    address: MOCHA_TREE_CONTRACT_ADDRESS,
+    abi: MOCHA_TREE_CONTRACT_ABI,
+    functionName: 'getActiveFarmIds',
+    chainId: scrollSepolia.id,
+  });
+
+  const farmConfigContracts = activeFarmIds
+    ? activeFarmIds.map((farmId) => ({
+        address: MOCHA_TREE_CONTRACT_ADDRESS,
+        abi: MOCHA_TREE_CONTRACT_ABI,
+        functionName: 'getFarmConfig',
+        args: [farmId],
+        chainId: scrollSepolia.id,
+      }))
+    : [];
 
   const contract = getContract({
     client,

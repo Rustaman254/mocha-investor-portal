@@ -1,48 +1,35 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { GeistSans } from "geist/font/sans"
-import { GeistMono } from "geist/font/mono"
-import { ThemeProvider } from "@/components/theme-provider"
-import { WagmiProvider } from 'wagmi';
-import { ThirdwebProvider } from "thirdweb/react";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import "./globals.css"
-import {wagmiConfig} from "@/lib/config";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+
+const inter = Inter({ subsets: ['latin'] })
+
+import { headers } from 'next/headers' 
+import ContextProvider from '@/app/context/index'
+import { ThemeProvider } from '@/components/theme-provider'
 
 export const metadata: Metadata = {
-  title: "Project Mocha",
-  description: "Professional cryptocurrency trading dashboard",
+  title: 'AppKit Example App',
+  description: 'Powered by Reown'
 }
 
-const queryClient = new QueryClient();
-
-export default function RootLayout({
-  children,
+export default async function RootLayout({
+  children
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <style>{`
-          html {
-            font-family: ${GeistSans.style.fontFamily};
-            --font-sans: ${GeistSans.style.fontFamily};
-            --font-mono: ${GeistMono.style.fontFamily};
-          }
-        `}</style>
 
-        <link rel="apple-touch-icon" sizes="180x180" href="/favicon_io/apple-touch-icon.png"/>
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon_io/favicon-32x32.png"/>
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon_io/favicon-16x16.png"/>
-        <link rel="manifest" href="/favicon_io/site.webmanifest"/>
-      </head>
-      <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
-        <ThirdwebProvider>
+  const headersObj = await headers();
+  const cookies = headersObj.get('cookie')
+
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <ContextProvider cookies={cookies}>
           <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
             {children}
           </ThemeProvider>
-        </ThirdwebProvider>
+        </ContextProvider>
       </body>
     </html>
   )
